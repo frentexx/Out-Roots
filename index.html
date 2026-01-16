@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>115年小清華原民班 - 感恩展演</title>
+    
+    <!-- 字體: Noto Sans TC & Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans TC"', '"Inter"', 'sans-serif'],
+                    },
+                    colors: {
+                        earth: {
+                            50: '#fcfaf8', // 背景米白
+                            100: '#f7f3ef',
+                            200: '#efe6dd',
+                            600: '#8c705f', // 深棕文字
+                            800: '#5e4b42',
+                            900: '#4a3b32',
+                        },
+                        tribal: {
+                            teal: '#0d9488', // 湖水綠
+                            amber: '#f59e0b', // 琥珀橘
+                            red: '#e11d48',   // 赭紅
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Firebase SDK (僅保留 App, Auth, Firestore) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+    <!-- SortableJS for Drag and Drop -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+
+    <style>
+        /* 自定義捲軸 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #aaa; }
+        
+        .dragging {
+            opacity: 0.5;
+            background: #f0fdfa;
+            border: 2px dashed #0d9488;
+        }
+    </style>
+</head>
+<body class="bg-earth-50 text-earth-900 min-h-screen flex flex-col items-center">
+
+    <!-- 頂部導航 -->
+    <nav class="w-full max-w-4xl px-4 py-3 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-earth-200">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-tribal-teal rounded-full flex items-center justify-center text-white font-bold">115</div>
+            <h1 class="font-bold text-lg tracking-wide text-earth-800">小清華原民班</h1>
+        </div>
+        <button id="authBtn" class="text-sm px-3 py-1.5 rounded-full border border-earth-200 hover:bg-earth-100 transition flex items-center gap-2">
+            <i class="fa-brands fa-google"></i> <span id="authText">登入</span>
+        </button>
+    </nav>
+
+    <main class="w-full max-w-4xl px-4 pb-20 space-y-8 mt-4">
+
+        <!-- 1. Banner 區塊 -->
+        <section class="relative w-full aspect-[16/9] md:aspect-[21/9] bg-earth-200 rounded-2xl overflow-hidden shadow-md group">
+            <!-- 預設圖片 placeholder，若資料庫有連結則替換 -->
+            <img id="bannerImg" src="https://images.unsplash.com/photo-1533038590840-1cde6e668a91?q=80&w=1600&auto=format&fit=crop" alt="Banner" class="w-full h-full object-cover transition duration-500">
+            
+            <!-- 管理員更換橫幅按鈕 (改為輸入網址) -->
+            <div id="adminBannerControl" class="hidden absolute bottom-4 right-4 z-10">
+                <button id="changeBannerBtn" class="bg-black/60 hover:bg-black/80 text-white px-4 py-2 rounded-lg text-sm backdrop-blur-sm transition flex items-center gap-2">
+                    <i class="fa-solid fa-link"></i> 設定圖片網址
+                </button>
+            </div>
+
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+            <div class="absolute bottom-4 left-4 text-white text-shadow">
+                <h2 class="text-2xl font-bold">感恩展演</h2>
+                <p class="text-sm opacity-90">2026.01 - 2026.03 系列活動</p>
+            </div>
+        </section>
+
+        <!-- 2. IG 專區 & 公告欄 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- IG 連結 -->
+            <section class="md:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-earth-200 flex flex-col items-center justify-center text-center gap-3">
+                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 p-[2px]">
+                    <div class="w-full h-full bg-white rounded-full p-1">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="IG" class="w-full h-full object-contain">
+                    </div>
+                </div>
+                <h3 class="font-bold text-lg">追蹤我們的日常</h3>
+                <a href="https://instagram.com" target="_blank" class="w-full block bg-earth-800 text-white py-2 rounded-lg hover:bg-earth-900 transition font-medium">
+                    <i class="fa-brands fa-instagram mr-1"></i>前往 Instagram
+                </a>
+            </section>
+
+            <!-- 公告欄 -->
+            <section class="md:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-earth-200">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="font-bold text-lg text-earth-800"><i class="fa-solid fa-bullhorn text-tribal-amber mr-2"></i>最新公告</h3>
+                    <button id="addNoticeBtn" class="hidden text-xs bg-earth-100 hover:bg-earth-200 px-3 py-1 rounded-full text-earth-600 transition">
+                        <i class="fa-solid fa-plus"></i> 新增
+                    </button>
+                </div>
+                <ul id="noticeList" class="space-y-3">
+                    <li class="text-center text-earth-600 py-4 text-sm"><i class="fa-solid fa-circle-notch fa-spin"></i> 載入中...</li>
+                </ul>
+            </section>
+        </div>
+
+        <!-- 3. 行事曆 -->
+        <section class="bg-white rounded-2xl shadow-sm border border-earth-200 overflow-hidden">
+            <div class="p-6 border-b border-earth-100 bg-earth-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h3 class="font-bold text-xl text-earth-800">活動行事曆</h3>
+                    <p class="text-xs text-earth-600 mt-1">
+                        <span class="hidden md:inline">管理員可拖曳排序</span>
+                    </p>
+                </div>
+                <div class="flex bg-earth-200/50 p-1 rounded-lg">
+                    <button onclick="filterEvents('2026-01')" class="month-tab px-4 py-1.5 rounded-md text-sm font-medium transition text-earth-600 hover:bg-white hover:shadow-sm" data-month="2026-01">一月</button>
+                    <button onclick="filterEvents('2026-02')" class="month-tab px-4 py-1.5 rounded-md text-sm font-medium transition text-earth-600 hover:bg-white hover:shadow-sm" data-month="2026-02">二月</button>
+                    <button onclick="filterEvents('2026-03')" class="month-tab px-4 py-1.5 rounded-md text-sm font-medium transition text-earth-600 hover:bg-white hover:shadow-sm" data-month="2026-03">三月</button>
+                </div>
+                <button id="addEventBtn" class="hidden bg-tribal-teal text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition shadow-sm">
+                    <i class="fa-solid fa-calendar-plus mr-1"></i> 新增活動
+                </button>
+            </div>
+            <div id="calendarList" class="divide-y divide-earth-100"></div>
+            <div id="emptyState" class="hidden p-10 text-center text-earth-400">
+                <i class="fa-regular fa-calendar-xmark text-4xl mb-3"></i>
+                <p>本月份尚無活動</p>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="w-full text-center py-6 text-xs text-earth-400">
+        <p>&copy; 2026 屏北高中 小清華原民班. All Rights Reserved.</p>
+    </footer>
+
+    <!-- ========== Modals (彈窗) ========== -->
+
+    <!-- 活動 Modal -->
+    <div id="eventModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl transform transition-all scale-95 opacity-0 modal-content overflow-hidden">
+            <div class="bg-earth-100 px-6 py-4 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-lg text-earth-800">新增活動</h3>
+                <button onclick="closeModal('eventModal')" class="text-earth-500 hover:text-earth-800"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="eventForm" class="p-6 space-y-4">
+                <input type="hidden" id="eventId">
+                <div>
+                    <label class="block text-xs font-bold text-earth-600 mb-1">日期</label>
+                    <input type="date" id="eventDate" required class="w-full px-3 py-2 rounded-lg border border-earth-200 bg-earth-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-earth-600 mb-1">活動標題</label>
+                    <input type="text" id="eventTitle" placeholder="例如：成果發表會" required class="w-full px-3 py-2 rounded-lg border border-earth-200 bg-earth-50">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-earth-600 mb-1">標籤顏色</label>
+                    <div class="flex gap-3">
+                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="red" class="peer hidden" checked><span class="block w-6 h-6 rounded-full bg-rose-500 peer-checked:ring-2 ring-rose-500"></span></label>
+                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="teal" class="peer hidden"><span class="block w-6 h-6 rounded-full bg-teal-500 peer-checked:ring-2 ring-teal-500"></span></label>
+                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="amber" class="peer hidden"><span class="block w-6 h-6 rounded-full bg-amber-500 peer-checked:ring-2 ring-amber-500"></span></label>
+                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="blue" class="peer hidden"><span class="block w-6 h-6 rounded-full bg-blue-500 peer-checked:ring-2 ring-blue-500"></span></label>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-earth-600 mb-1">說明 (選填)</label>
+                    <textarea id="eventDesc" rows="3" class="w-full px-3 py-2 rounded-lg border border-earth-200 bg-earth-50"></textarea>
+                </div>
+                <div class="pt-2 flex gap-3">
+                    <button type="button" onclick="closeModal('eventModal')" class="flex-1 py-2 rounded-lg border hover:bg-earth-50">取消</button>
+                    <button type="submit" class="flex-1 py-2 rounded-lg bg-tribal-teal text-white hover:bg-teal-700">儲存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 公告 Modal -->
+    <div id="noticeModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
+            <button onclick="closeModal('noticeModal')" class="absolute top-4 right-4 text-earth-400 hover:text-earth-800"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 id="noticeDetailTitle" class="font-bold text-xl text-tribal-teal mb-2"></h3>
+            <p id="noticeDetailDate" class="text-xs text-earth-400 mb-4"></p>
+            <div id="noticeDetailContent" class="text-earth-700 text-sm leading-relaxed mb-6 whitespace-pre-wrap"></div>
+            <a id="noticeDetailLink" href="#" target="_blank" class="hidden w-full text-center block bg-earth-800 text-white py-2 rounded-lg hover:bg-earth-900 transition">
+                <i class="fa-solid fa-link mr-1"></i> 相關連結
+            </a>
+            <button id="deleteNoticeBtn" class="hidden w-full mt-2 text-center text-rose-500 text-sm hover:underline">刪除此公告</button>
+        </div>
+    </div>
+
+    <!-- 新增公告 Modal -->
+    <div id="addNoticeModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6">
+            <h3 class="font-bold text-lg mb-4">發布新公告</h3>
+            <form id="noticeForm" class="space-y-4">
+                <input type="text" id="newNoticeTitle" placeholder="標題" required class="w-full px-3 py-2 rounded-lg border bg-earth-50">
+                <textarea id="newNoticeContent" placeholder="內容" rows="4" required class="w-full px-3 py-2 rounded-lg border bg-earth-50"></textarea>
+                <input type="url" id="newNoticeLink" placeholder="連結 (https://...)" class="w-full px-3 py-2 rounded-lg border bg-earth-50">
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeModal('addNoticeModal')" class="flex-1 py-2 rounded-lg border">取消</button>
+                    <button type="submit" class="flex-1 py-2 rounded-lg bg-tribal-amber text-white">發布</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // 1. Firebase Config (您的設定)
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlICe9oEpbHXXO1kEibNCVA-BY6DP-Eo0",
+            authDomain: "our-roots-55914.firebaseapp.com",
+            projectId: "our-roots-55914",
+            storageBucket: "our-roots-55914.firebasestorage.app", // 保留但不會用到
+            messagingSenderId: "584699845650",
+            appId: "1:584699845650:web:8aaf633e8aa08cbebc8ccb",
+            measurementId: "G-W3141VBZXB"
+        };
+
+        // 初始化
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        // 注意：移除 storage 變數，避免誤用
+
+        // ================= 設定管理者 =================
+        // 請確保您登入的 Email 與此處完全一致
+        const ADMIN_EMAIL = "fuwen@ppsh.ptc.edu.tw";
+        // =============================================
+
+        let currentUser = null;
+        let currentMonth = "2026-01"; 
+        let eventsData = [];
+        let sortableInstance = null;
+
+        // --- Auth Logic ---
+        const authBtn = document.getElementById('authBtn');
+        const authText = document.getElementById('authText');
+
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            if (user) {
+                authText.innerText = "登出 (" + user.displayName + ")";
+                authBtn.onclick = () => auth.signOut();
+                
+                if (user.email === ADMIN_EMAIL) {
+                    showAdminControls(true);
+                } else {
+                    showAdminControls(false); // 一般登入者，非管理員
+                }
+            } else {
+                authText.innerText = "登入";
+                authBtn.onclick = googleLogin;
+                showAdminControls(false);
+            }
+        });
+
+        function googleLogin() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(err => alert("登入失敗: " + err.message));
+        }
+
+        function showAdminControls(isAdmin) {
+            const display = isAdmin ? 'inline-block' : 'none';
+            const displayFlex = isAdmin ? 'flex' : 'none';
+            document.getElementById('addEventBtn').style.display = display;
+            document.getElementById('addNoticeBtn').style.display = display;
+            document.getElementById('adminBannerControl').style.display = displayFlex;
+            
+            renderEvents(eventsData); // 刷新列表顯示編輯按鈕
+            initSortable(isAdmin);
+        }
+
+        // --- Banner Logic (使用網址字串) ---
+        const bannerImg = document.getElementById('bannerImg');
+        const changeBannerBtn = document.getElementById('changeBannerBtn');
+
+        // 從資料庫讀取 Banner 網址
+        db.collection('settings').doc('main').onSnapshot(doc => {
+            if (doc.exists && doc.data().bannerUrl) {
+                bannerImg.src = doc.data().bannerUrl;
+            }
+        });
+
+        // 點擊按鈕跳出輸入框
+        changeBannerBtn.addEventListener('click', async () => {
+            const currentUrl = bannerImg.src;
+            const newUrl = prompt("請輸入新的圖片網址 (https://...)\n若要用專案內圖片可輸入 ./banner.jpg", currentUrl);
+            
+            if (newUrl && newUrl !== currentUrl) {
+                try {
+                    await db.collection('settings').doc('main').set({
+                        bannerUrl: newUrl
+                    }, { merge: true });
+                    alert("橫幅設定已更新！");
+                } catch (error) {
+                    console.error(error);
+                    alert("更新失敗，請檢查權限或網路");
+                }
+            }
+        });
+
+        // --- Events Logic ---
+        db.collection('events').orderBy('order').onSnapshot(snapshot => {
+            eventsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderEvents(eventsData);
+        });
+
+        function filterEvents(month) {
+            currentMonth = month;
+            document.querySelectorAll('.month-tab').forEach(btn => {
+                if(btn.dataset.month === month) {
+                    btn.classList.add('bg-white', 'shadow-sm', 'text-tribal-teal');
+                    btn.classList.remove('text-earth-600');
+                } else {
+                    btn.classList.remove('bg-white', 'shadow-sm', 'text-tribal-teal');
+                    btn.classList.add('text-earth-600');
+                }
+            });
+            renderEvents(eventsData);
+        }
+
+        function renderEvents(allEvents) {
+            const listEl = document.getElementById('calendarList');
+            const emptyEl = document.getElementById('emptyState');
+            listEl.innerHTML = '';
+
+            const filtered = allEvents.filter(ev => ev.date.startsWith(currentMonth));
+            
+            if (filtered.length === 0) {
+                emptyEl.classList.remove('hidden');
+            } else {
+                emptyEl.classList.add('hidden');
+                
+                filtered.forEach(ev => {
+                    const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+                    const colorMap = {
+                        'red': 'bg-rose-100 text-rose-700 border-rose-200',
+                        'teal': 'bg-teal-100 text-teal-700 border-teal-200',
+                        'amber': 'bg-amber-100 text-amber-800 border-amber-200',
+                        'blue': 'bg-blue-100 text-blue-700 border-blue-200'
+                    };
+                    const tagClass = colorMap[ev.tagColor] || colorMap['teal'];
+                    const day = ev.date.split('-')[2];
+
+                    const item = document.createElement('div');
+                    item.className = "group flex items-center gap-4 p-4 hover:bg-earth-50 transition select-none bg-white";
+                    item.dataset.id = ev.id;
+                    
+                    item.innerHTML = `
+                        <div class="flex-shrink-0 w-12 text-center">
+                            <span class="block text-xl font-bold text-earth-800">${day}</span>
+                            <span class="block text-xs text-earth-400 uppercase">日</span>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="text-xs px-2 py-0.5 rounded border ${tagClass}">${ev.tagColor === 'red' ? '重要' : '活動'}</span>
+                                <h4 class="font-bold text-earth-800">${ev.title}</h4>
+                            </div>
+                            <p class="text-sm text-earth-600 line-clamp-1">${ev.description || ''}</p>
+                        </div>
+                        ${isAdmin ? `
+                        <div class="flex items-center gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition">
+                            <button onclick="editEvent('${ev.id}')" class="p-2 text-earth-400 hover:text-tribal-teal"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteEvent('${ev.id}')" class="p-2 text-earth-400 hover:text-rose-500"><i class="fa-solid fa-trash"></i></button>
+                            <div class="drag-handle cursor-move p-2 text-earth-300 hover:text-earth-600"><i class="fa-solid fa-grip-vertical"></i></div>
+                        </div>
+                        ` : ''}
+                    `;
+                    listEl.appendChild(item);
+                });
+            }
+        }
+
+        function initSortable(enable) {
+            const el = document.getElementById('calendarList');
+            if (sortableInstance) sortableInstance.destroy();
+            if (enable) {
+                sortableInstance = Sortable.create(el, {
+                    handle: '.drag-handle',
+                    animation: 150,
+                    ghostClass: 'dragging',
+                    onEnd: function (evt) {
+                        const batch = db.batch();
+                        Array.from(el.children).forEach((item, index) => {
+                            batch.update(db.collection('events').doc(item.dataset.id), { order: index });
+                        });
+                        batch.commit();
+                    }
+                });
+            }
+        }
+
+        // --- Event CRUD ---
+        const eventForm = document.getElementById('eventForm');
+        
+        document.getElementById('addEventBtn').addEventListener('click', () => {
+            eventForm.reset();
+            document.getElementById('eventId').value = '';
+            document.getElementById('modalTitle').innerText = "新增活動";
+            document.getElementById('eventDate').value = `${currentMonth}-01`;
+            openModal('eventModal');
+        });
+
+        window.editEvent = (id) => {
+            const ev = eventsData.find(e => e.id === id);
+            document.getElementById('eventId').value = ev.id;
+            document.getElementById('eventTitle').value = ev.title;
+            document.getElementById('eventDate').value = ev.date;
+            document.getElementById('eventDesc').value = ev.description;
+            document.querySelector(`input[name="tagColor"][value="${ev.tagColor}"]`).checked = true;
+            document.getElementById('modalTitle').innerText = "編輯活動";
+            openModal('eventModal');
+        };
+
+        window.deleteEvent = (id) => {
+            if(confirm("確定刪除？")) db.collection('events').doc(id).delete();
+        };
+
+        eventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('eventId').value;
+            const data = {
+                title: document.getElementById('eventTitle').value,
+                date: document.getElementById('eventDate').value,
+                description: document.getElementById('eventDesc').value,
+                tagColor: document.querySelector('input[name="tagColor"]:checked').value,
+                order: id ? undefined : eventsData.length // 新增時放到最後
+            };
+            if(data.order === undefined) delete data.order;
+            
+            closeModal('eventModal');
+            id ? await db.collection('events').doc(id).update(data) : await db.collection('events').add(data);
+        });
+
+        // --- Notices Logic ---
+        const noticeList = document.getElementById('noticeList');
+
+        db.collection('notices').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
+            noticeList.innerHTML = '';
+            const notices = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
+            
+            if (notices.length === 0) {
+                noticeList.innerHTML = '<li class="text-center text-earth-400 text-sm">目前沒有公告</li>';
+                return;
+            }
+
+            notices.forEach(n => {
+                const li = document.createElement('li');
+                li.className = "flex items-start gap-3 p-3 rounded-lg hover:bg-earth-50 cursor-pointer transition border border-transparent hover:border-earth-100";
+                li.onclick = () => showNoticeDetail(n);
+                li.innerHTML = `
+                    <div class="mt-1 w-2 h-2 rounded-full bg-tribal-amber flex-shrink-0"></div>
+                    <div>
+                        <h4 class="text-sm font-bold text-earth-800 hover:text-tribal-teal transition">${n.title}</h4>
+                        <span class="text-xs text-earth-400">${n.createdAt ? new Date(n.createdAt.toDate()).toLocaleDateString() : ''}</span>
+                    </div>
+                `;
+                noticeList.appendChild(li);
+            });
+        });
+
+        document.getElementById('addNoticeBtn').addEventListener('click', () => openModal('addNoticeModal'));
+        document.getElementById('noticeForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            await db.collection('notices').add({
+                title: document.getElementById('newNoticeTitle').value,
+                content: document.getElementById('newNoticeContent').value,
+                link: document.getElementById('newNoticeLink').value,
+                createdAt: new Date()
+            });
+            closeModal('addNoticeModal');
+            e.target.reset();
+        });
+
+        function showNoticeDetail(notice) {
+            document.getElementById('noticeDetailTitle').innerText = notice.title;
+            document.getElementById('noticeDetailDate').innerText = notice.createdAt ? new Date(notice.createdAt.toDate()).toLocaleDateString() : '';
+            document.getElementById('noticeDetailContent').innerText = notice.content;
+            
+            const linkBtn = document.getElementById('noticeDetailLink');
+            if (notice.link) {
+                linkBtn.href = notice.link;
+                linkBtn.classList.remove('hidden');
+            } else {
+                linkBtn.classList.add('hidden');
+            }
+
+            const delBtn = document.getElementById('deleteNoticeBtn');
+            if (currentUser && currentUser.email === ADMIN_EMAIL) {
+                delBtn.classList.remove('hidden');
+                delBtn.onclick = () => {
+                    if(confirm("刪除此公告？")) {
+                        db.collection('notices').doc(notice.id).delete();
+                        closeModal('noticeModal');
+                    }
+                };
+            } else {
+                delBtn.classList.add('hidden');
+            }
+            openModal('noticeModal');
+        }
+
+        // --- Utils ---
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.firstElementChild.classList.remove('scale-95', 'opacity-0');
+                modal.firstElementChild.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.firstElementChild.classList.remove('scale-100', 'opacity-100');
+            modal.firstElementChild.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 200);
+        }
+
+        filterEvents(currentMonth);
+    </script>
+</body>
+</html>

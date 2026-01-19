@@ -42,16 +42,15 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Firebase SDK (僅保留 App, Auth, Firestore) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-    <!-- SortableJS for Drag and Drop -->
+    <!-- SortableJS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
     <style>
-        /* 自定義捲軸 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; }
         ::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
@@ -62,372 +61,373 @@
             background: #f0fdfa;
             border: 2px dashed #0d9488;
         }
+        /* 時間軸線條 */
+        .timeline-line {
+            position: absolute;
+            left: 23px; /* 圓點中心 */
+            top: 36px;
+            bottom: -20px;
+            width: 2px;
+            background-color: #efe6dd;
+            z-index: 0;
+        }
+        .last-item .timeline-line {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-earth-50 text-earth-900 min-h-screen flex flex-col items-center">
 
-    <!-- 頂部導航 -->
-    <nav class="w-full max-w-4xl px-4 py-3 flex justify-between items-center bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-earth-200">
+    <!-- 頂部導航 (緊湊版) -->
+    <nav class="w-full max-w-4xl px-4 py-2 flex justify-between items-center bg-white/90 backdrop-blur-md sticky top-0 z-50 shadow-sm border-b border-earth-200">
         <div class="flex items-center gap-2">
-            <div class="w-8 h-8 bg-tribal-teal rounded-full flex items-center justify-center text-white font-bold">115</div>
-            <h1 class="font-bold text-lg tracking-wide text-earth-800">小清華原民班</h1>
+            <div class="w-7 h-7 bg-tribal-teal rounded-full flex items-center justify-center text-white text-xs font-bold">115</div>
+            <h1 class="font-bold text-base tracking-wide text-earth-800">小清華原民班</h1>
         </div>
-        <button id="authBtn" class="text-sm px-3 py-1.5 rounded-full border border-earth-200 hover:bg-earth-100 transition flex items-center gap-2">
+        <button id="authBtn" class="text-xs px-2.5 py-1 rounded-full border border-earth-200 hover:bg-earth-100 transition flex items-center gap-1.5">
             <i class="fa-brands fa-google"></i> <span id="authText">登入</span>
         </button>
     </nav>
 
-    <main class="w-full max-w-4xl px-4 pb-20 space-y-8 mt-4">
+    <main class="w-full max-w-4xl px-4 pb-20 space-y-5 mt-3">
 
-        <!-- 1. Banner 區塊 -->
-        <section class="relative w-full aspect-[16/9] md:aspect-[21/9] bg-earth-200 rounded-2xl overflow-hidden shadow-md group">
-            <!-- 預設圖片 placeholder，若資料庫有連結則替換 -->
-            <img id="bannerImg" src="https://images.unsplash.com/photo-1533038590840-1cde6e668a91?q=80&w=1600&auto=format&fit=crop" alt="Banner" class="w-full h-full object-cover transition duration-500">
+        <!-- 1. Banner 區塊 (手機版高度壓縮) -->
+        <section class="relative w-full aspect-[2.5/1] md:aspect-[21/9] bg-earth-200 rounded-xl overflow-hidden shadow-sm group">
+            <img id="bannerImg" 
+                 src="./banner.jpg" 
+                 onerror="this.src='https://placehold.co/1200x600/efe6dd/5e4b42?text=Banner'"
+                 alt="Banner" 
+                 class="w-full h-full object-cover">
             
-            <!-- 管理員更換橫幅按鈕 (改為輸入網址) -->
-            <div id="adminBannerControl" class="hidden absolute bottom-4 right-4 z-10">
-                <button id="changeBannerBtn" class="bg-black/60 hover:bg-black/80 text-white px-4 py-2 rounded-lg text-sm backdrop-blur-sm transition flex items-center gap-2">
-                    <i class="fa-solid fa-link"></i> 設定圖片網址
+            <div id="adminBannerControl" class="hidden absolute bottom-2 right-2 z-10">
+                <button id="changeBannerBtn" class="bg-black/60 text-white px-3 py-1 rounded-md text-xs backdrop-blur-sm">
+                    <i class="fa-solid fa-link"></i> 設定圖片
                 </button>
             </div>
 
-            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
-            <div class="absolute bottom-4 left-4 text-white text-shadow">
-                <h2 class="text-2xl font-bold">感恩展演</h2>
-                <p class="text-sm opacity-90">2026.01 - 2026.03 系列活動</p>
+            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent pointer-events-none"></div>
+            <div class="absolute bottom-3 left-4 text-white">
+                <h2 class="text-xl font-bold leading-tight">感恩展演</h2>
+                <p class="text-xs opacity-90 mt-0.5">2026.01 - 2026.03</p>
             </div>
         </section>
 
-        <!-- 2. IG 專區 & 公告欄 -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- IG 連結 -->
-            <section class="md:col-span-1 bg-white rounded-2xl p-6 shadow-sm border border-earth-200 flex flex-col items-center justify-center text-center gap-3">
-                <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 p-[2px]">
-                    <div class="w-full h-full bg-white rounded-full p-1">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="IG" class="w-full h-full object-contain">
+        <!-- 2. 混合區塊：公告 + IG (手機版優化佈局) -->
+        <div class="flex flex-col md:grid md:grid-cols-3 gap-4">
+            
+            <!-- IG 專區 (手機：扁平橫條 / 桌機：卡片) -->
+            <section class="order-2 md:order-1 md:col-span-1 bg-white rounded-xl shadow-sm border border-earth-200 overflow-hidden">
+                <a href="https://instagram.com" target="_blank" class="flex md:flex-col items-center p-3 md:p-6 gap-3 md:gap-4 hover:bg-earth-50 transition group">
+                    <!-- Icon -->
+                    <div class="w-10 h-10 md:w-14 md:h-14 flex-shrink-0 rounded-full bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 p-[2px]">
+                        <div class="w-full h-full bg-white rounded-full p-1">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Instagram_icon.png" alt="IG" class="w-full h-full object-contain">
+                        </div>
                     </div>
-                </div>
-                <h3 class="font-bold text-lg">追蹤我們的日常</h3>
-                <a href="https://instagram.com" target="_blank" class="w-full block bg-earth-800 text-white py-2 rounded-lg hover:bg-earth-900 transition font-medium">
-                    <i class="fa-brands fa-instagram mr-1"></i>前往 Instagram
+                    <!-- Text -->
+                    <div class="flex-grow md:text-center">
+                        <h3 class="font-bold text-sm md:text-lg text-earth-800">追蹤 IG 帳號</h3>
+                        <p class="text-xs text-earth-500 md:mt-1">查看幕後花絮與動態</p>
+                    </div>
+                    <!-- Arrow/Button -->
+                    <div class="text-earth-400 md:hidden">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </div>
+                    <div class="hidden md:block w-full bg-earth-800 text-white py-1.5 rounded text-sm text-center">
+                        前往 Instagram
+                    </div>
                 </a>
             </section>
 
-            <!-- 公告欄 -->
-            <section class="md:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-earth-200">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="font-bold text-lg text-earth-800"><i class="fa-solid fa-bullhorn text-tribal-amber mr-2"></i>最新公告</h3>
-                    <button id="addNoticeBtn" class="hidden text-xs bg-earth-100 hover:bg-earth-200 px-3 py-1 rounded-full text-earth-600 transition">
-                        <i class="fa-solid fa-plus"></i> 新增
+            <!-- 公告欄 (標籤卡片式) -->
+            <section class="order-1 md:order-2 md:col-span-2 bg-white rounded-xl p-4 shadow-sm border border-earth-200">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-base text-earth-800 flex items-center gap-2">
+                        <i class="fa-solid fa-bullhorn text-tribal-amber"></i> 最新公告
+                    </h3>
+                    <button id="addNoticeBtn" class="hidden text-xs bg-earth-100 hover:bg-earth-200 px-2 py-1 rounded text-earth-600 transition">
+                        <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
-                <ul id="noticeList" class="space-y-3">
-                    <li class="text-center text-earth-600 py-4 text-sm"><i class="fa-solid fa-circle-notch fa-spin"></i> 載入中...</li>
-                </ul>
+                <!-- 標籤容器 -->
+                <div id="noticeList" class="flex flex-wrap gap-2">
+                    <div class="text-xs text-earth-400 py-2">載入中...</div>
+                </div>
             </section>
         </div>
 
-        <!-- 3. 行事曆 -->
-        <section class="bg-white rounded-2xl shadow-sm border border-earth-200 overflow-hidden">
-            <div class="p-6 border-b border-earth-100 bg-earth-50/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <!-- 3. 行事曆 (時間軸模式 - 移除分頁) -->
+        <section class="bg-white rounded-xl shadow-sm border border-earth-200 overflow-hidden min-h-[300px]">
+            <div class="p-4 border-b border-earth-100 bg-earth-50/50 flex justify-between items-center">
                 <div>
-                    <h3 class="font-bold text-xl text-earth-800">活動行事曆</h3>
-                    <p class="text-xs text-earth-600 mt-1">
-                        <span class="hidden md:inline">管理員可拖曳排序</span>
-                    </p>
+                    <h3 class="font-bold text-lg text-earth-800">活動日程表</h3>
+                    <p class="text-xs text-earth-500">所有活動一覽</p>
                 </div>
-                <div class="flex bg-earth-200/50 p-1 rounded-lg">
-                    <button onclick="filterEvents('2026-01')" class="month-tab px-4 py-1.5 rounded-md text-sm font-medium transition text-earth-600 hover:bg-white hover:shadow-sm" data-month="2026-01">一月</button>
-                    <button onclick="filterEvents('2026-02')" class="month-tab px-4 py-1.5 rounded-md text-sm font-medium transition text-earth-600 hover:bg-white hover:shadow-sm" data-month="2026-02">二月</button>
-                    <button onclick="filterEvents('2026-03')" class="month-tab px-4 py-1.5 rounded-md text-sm font-medium transition text-earth-600 hover:bg-white hover:shadow-sm" data-month="2026-03">三月</button>
-                </div>
-                <button id="addEventBtn" class="hidden bg-tribal-teal text-white px-4 py-2 rounded-lg text-sm hover:bg-teal-700 transition shadow-sm">
-                    <i class="fa-solid fa-calendar-plus mr-1"></i> 新增活動
+                <button id="addEventBtn" class="hidden bg-tribal-teal text-white px-3 py-1.5 rounded-lg text-xs hover:bg-teal-700 transition shadow-sm">
+                    <i class="fa-solid fa-calendar-plus mr-1"></i> 新增
                 </button>
             </div>
-            <div id="calendarList" class="divide-y divide-earth-100"></div>
-            <div id="emptyState" class="hidden p-10 text-center text-earth-400">
-                <i class="fa-regular fa-calendar-xmark text-4xl mb-3"></i>
-                <p>本月份尚無活動</p>
+            
+            <!-- 列表容器 -->
+            <div id="calendarList" class="p-0">
+                <!-- 內容動態生成 -->
+            </div>
+            
+            <div id="emptyState" class="hidden p-8 text-center text-earth-400">
+                <p class="text-sm">目前沒有安排活動</p>
             </div>
         </section>
 
     </main>
 
     <footer class="w-full text-center py-6 text-xs text-earth-400">
-        <p>&copy; 2026 屏北高中 小清華原民班. All Rights Reserved.</p>
+        <p>&copy; 2026 屏北高中 小清華原民班</p>
     </footer>
 
-    <!-- ========== Modals (彈窗) ========== -->
+    <!-- ========== Modals ========== -->
 
     <!-- 活動 Modal -->
     <div id="eventModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl transform transition-all scale-95 opacity-0 modal-content overflow-hidden">
-            <div class="bg-earth-100 px-6 py-4 flex justify-between items-center">
-                <h3 id="modalTitle" class="font-bold text-lg text-earth-800">新增活動</h3>
-                <button onclick="closeModal('eventModal')" class="text-earth-500 hover:text-earth-800"><i class="fa-solid fa-xmark text-xl"></i></button>
+        <div class="bg-white rounded-xl w-full max-w-sm shadow-2xl transform transition-all scale-95 opacity-0 modal-content overflow-hidden">
+            <div class="bg-earth-100 px-4 py-3 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-base text-earth-800">新增活動</h3>
+                <button onclick="closeModal('eventModal')" class="text-earth-500"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <form id="eventForm" class="p-6 space-y-4">
+            <form id="eventForm" class="p-5 space-y-4">
                 <input type="hidden" id="eventId">
                 <div>
                     <label class="block text-xs font-bold text-earth-600 mb-1">日期</label>
-                    <input type="date" id="eventDate" required class="w-full px-3 py-2 rounded-lg border border-earth-200 bg-earth-50">
+                    <input type="date" id="eventDate" required class="w-full px-3 py-2 rounded-lg border border-earth-200 text-sm">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-earth-600 mb-1">活動標題</label>
-                    <input type="text" id="eventTitle" placeholder="例如：成果發表會" required class="w-full px-3 py-2 rounded-lg border border-earth-200 bg-earth-50">
+                    <label class="block text-xs font-bold text-earth-600 mb-1">標題</label>
+                    <input type="text" id="eventTitle" required class="w-full px-3 py-2 rounded-lg border border-earth-200 text-sm">
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-earth-600 mb-1">標籤顏色</label>
-                    <div class="flex gap-3">
-                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="red" class="peer hidden" checked><span class="block w-6 h-6 rounded-full bg-rose-500 peer-checked:ring-2 ring-rose-500"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="teal" class="peer hidden"><span class="block w-6 h-6 rounded-full bg-teal-500 peer-checked:ring-2 ring-teal-500"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="amber" class="peer hidden"><span class="block w-6 h-6 rounded-full bg-amber-500 peer-checked:ring-2 ring-amber-500"></span></label>
-                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="blue" class="peer hidden"><span class="block w-6 h-6 rounded-full bg-blue-500 peer-checked:ring-2 ring-blue-500"></span></label>
+                    <label class="block text-xs font-bold text-earth-600 mb-1">標籤</label>
+                    <div class="flex gap-2">
+                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="red" class="peer hidden" checked><span class="block px-3 py-1 rounded-full bg-rose-100 text-rose-700 text-xs border border-transparent peer-checked:border-rose-500 peer-checked:bg-rose-200">重要</span></label>
+                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="teal" class="peer hidden"><span class="block px-3 py-1 rounded-full bg-teal-100 text-teal-700 text-xs border border-transparent peer-checked:border-teal-500 peer-checked:bg-teal-200">一般</span></label>
+                        <label class="cursor-pointer"><input type="radio" name="tagColor" value="amber" class="peer hidden"><span class="block px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs border border-transparent peer-checked:border-amber-500 peer-checked:bg-amber-200">活動</span></label>
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-earth-600 mb-1">說明 (選填)</label>
-                    <textarea id="eventDesc" rows="3" class="w-full px-3 py-2 rounded-lg border border-earth-200 bg-earth-50"></textarea>
+                    <label class="block text-xs font-bold text-earth-600 mb-1">備註 (選填)</label>
+                    <textarea id="eventDesc" rows="2" class="w-full px-3 py-2 rounded-lg border border-earth-200 text-sm"></textarea>
                 </div>
-                <div class="pt-2 flex gap-3">
-                    <button type="button" onclick="closeModal('eventModal')" class="flex-1 py-2 rounded-lg border hover:bg-earth-50">取消</button>
-                    <button type="submit" class="flex-1 py-2 rounded-lg bg-tribal-teal text-white hover:bg-teal-700">儲存</button>
-                </div>
+                <button type="submit" class="w-full py-2 rounded-lg bg-tribal-teal text-white text-sm hover:bg-teal-700">儲存</button>
             </form>
         </div>
     </div>
 
     <!-- 公告 Modal -->
     <div id="noticeModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6 relative">
-            <button onclick="closeModal('noticeModal')" class="absolute top-4 right-4 text-earth-400 hover:text-earth-800"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <h3 id="noticeDetailTitle" class="font-bold text-xl text-tribal-teal mb-2"></h3>
+        <div class="bg-white rounded-xl w-full max-w-sm shadow-2xl p-5 relative">
+            <button onclick="closeModal('noticeModal')" class="absolute top-3 right-3 text-earth-400"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h3 id="noticeDetailTitle" class="font-bold text-lg text-tribal-teal mb-1"></h3>
             <p id="noticeDetailDate" class="text-xs text-earth-400 mb-4"></p>
             <div id="noticeDetailContent" class="text-earth-700 text-sm leading-relaxed mb-6 whitespace-pre-wrap"></div>
-            <a id="noticeDetailLink" href="#" target="_blank" class="hidden w-full text-center block bg-earth-800 text-white py-2 rounded-lg hover:bg-earth-900 transition">
+            <a id="noticeDetailLink" href="#" target="_blank" class="hidden w-full text-center block bg-earth-800 text-white py-2 rounded-lg text-sm mb-2">
                 <i class="fa-solid fa-link mr-1"></i> 相關連結
             </a>
-            <button id="deleteNoticeBtn" class="hidden w-full mt-2 text-center text-rose-500 text-sm hover:underline">刪除此公告</button>
+            <button id="deleteNoticeBtn" class="hidden w-full text-center text-rose-500 text-xs hover:underline">刪除公告</button>
         </div>
     </div>
 
     <!-- 新增公告 Modal -->
     <div id="addNoticeModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 backdrop-blur-sm p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl p-6">
-            <h3 class="font-bold text-lg mb-4">發布新公告</h3>
-            <form id="noticeForm" class="space-y-4">
-                <input type="text" id="newNoticeTitle" placeholder="標題" required class="w-full px-3 py-2 rounded-lg border bg-earth-50">
-                <textarea id="newNoticeContent" placeholder="內容" rows="4" required class="w-full px-3 py-2 rounded-lg border bg-earth-50"></textarea>
-                <input type="url" id="newNoticeLink" placeholder="連結 (https://...)" class="w-full px-3 py-2 rounded-lg border bg-earth-50">
-                <div class="flex gap-3">
-                    <button type="button" onclick="closeModal('addNoticeModal')" class="flex-1 py-2 rounded-lg border">取消</button>
-                    <button type="submit" class="flex-1 py-2 rounded-lg bg-tribal-amber text-white">發布</button>
-                </div>
+        <div class="bg-white rounded-xl w-full max-w-sm shadow-2xl p-5">
+            <h3 class="font-bold text-base mb-3">發布公告</h3>
+            <form id="noticeForm" class="space-y-3">
+                <input type="text" id="newNoticeTitle" placeholder="標題" required class="w-full px-3 py-2 rounded-lg border text-sm">
+                <textarea id="newNoticeContent" placeholder="內容" rows="3" required class="w-full px-3 py-2 rounded-lg border text-sm"></textarea>
+                <input type="url" id="newNoticeLink" placeholder="連結 (https://...)" class="w-full px-3 py-2 rounded-lg border text-sm">
+                <button type="submit" class="w-full py-2 rounded-lg bg-tribal-amber text-white text-sm">發布</button>
             </form>
         </div>
     </div>
 
-    <!-- JavaScript Logic -->
+    <!-- Logic -->
     <script>
-        // 1. Firebase Config (您的設定)
         const firebaseConfig = {
             apiKey: "AIzaSyBlICe9oEpbHXXO1kEibNCVA-BY6DP-Eo0",
             authDomain: "our-roots-55914.firebaseapp.com",
             projectId: "our-roots-55914",
-            storageBucket: "our-roots-55914.firebasestorage.app", // 保留但不會用到
+            storageBucket: "our-roots-55914.firebasestorage.app",
             messagingSenderId: "584699845650",
             appId: "1:584699845650:web:8aaf633e8aa08cbebc8ccb",
             measurementId: "G-W3141VBZXB"
         };
 
-        // 初始化
-        if (!firebase.apps.length) {
-            firebase.initializeApp(firebaseConfig);
-        }
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        // 注意：移除 storage 變數，避免誤用
-
-        // ================= 設定管理者 =================
-        // 請確保您登入的 Email 與此處完全一致
         const ADMIN_EMAIL = "fuwen@ppsh.ptc.edu.tw";
-        // =============================================
 
         let currentUser = null;
-        let currentMonth = "2026-01"; 
         let eventsData = [];
         let sortableInstance = null;
 
-        // --- Auth Logic ---
-        const authBtn = document.getElementById('authBtn');
-        const authText = document.getElementById('authText');
-
+        // Auth
         auth.onAuthStateChanged(user => {
             currentUser = user;
+            const btn = document.getElementById('authBtn');
+            const txt = document.getElementById('authText');
+            
             if (user) {
-                authText.innerText = "登出 (" + user.displayName + ")";
-                authBtn.onclick = () => auth.signOut();
-                
-                if (user.email === ADMIN_EMAIL) {
-                    showAdminControls(true);
-                } else {
-                    showAdminControls(false); // 一般登入者，非管理員
-                }
+                txt.innerText = "登出";
+                btn.onclick = () => auth.signOut();
+                showAdminControls(user.email === ADMIN_EMAIL);
             } else {
-                authText.innerText = "登入";
-                authBtn.onclick = googleLogin;
+                txt.innerText = "登入";
+                btn.onclick = () => {
+                    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+                        .catch(e => alert("登入失敗: " + e.message));
+                };
                 showAdminControls(false);
             }
         });
 
-        function googleLogin() {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(err => alert("登入失敗: " + err.message));
-        }
-
         function showAdminControls(isAdmin) {
-            const display = isAdmin ? 'inline-block' : 'none';
-            const displayFlex = isAdmin ? 'flex' : 'none';
-            document.getElementById('addEventBtn').style.display = display;
-            document.getElementById('addNoticeBtn').style.display = display;
-            document.getElementById('adminBannerControl').style.display = displayFlex;
-            
-            renderEvents(eventsData); // 刷新列表顯示編輯按鈕
+            const d = isAdmin ? 'inline-block' : 'none';
+            document.getElementById('addEventBtn').style.display = d;
+            document.getElementById('addNoticeBtn').style.display = d;
+            document.getElementById('adminBannerControl').style.display = isAdmin ? 'block' : 'none';
+            renderEvents(eventsData); // Re-render for edit buttons
             initSortable(isAdmin);
         }
 
-        // --- Banner Logic (使用網址字串) ---
+        // Banner
         const bannerImg = document.getElementById('bannerImg');
-        const changeBannerBtn = document.getElementById('changeBannerBtn');
-
-        // 從資料庫讀取 Banner 網址
         db.collection('settings').doc('main').onSnapshot(doc => {
-            if (doc.exists && doc.data().bannerUrl) {
-                bannerImg.src = doc.data().bannerUrl;
+            bannerImg.src = (doc.exists && doc.data().bannerUrl) ? doc.data().bannerUrl : "./banner.jpg";
+        });
+        document.getElementById('changeBannerBtn').addEventListener('click', async () => {
+            const newUrl = prompt("輸入圖片網址 (留空恢復預設):", bannerImg.src);
+            if (newUrl !== null) {
+                if (newUrl.trim() === "") await db.collection('settings').doc('main').delete();
+                else await db.collection('settings').doc('main').set({ bannerUrl: newUrl }, { merge: true });
             }
         });
 
-        // 點擊按鈕跳出輸入框
-        changeBannerBtn.addEventListener('click', async () => {
-            const currentUrl = bannerImg.src;
-            const newUrl = prompt("請輸入新的圖片網址 (https://...)\n若要用專案內圖片可輸入 ./banner.jpg", currentUrl);
-            
-            if (newUrl && newUrl !== currentUrl) {
-                try {
-                    await db.collection('settings').doc('main').set({
-                        bannerUrl: newUrl
-                    }, { merge: true });
-                    alert("橫幅設定已更新！");
-                } catch (error) {
-                    console.error(error);
-                    alert("更新失敗，請檢查權限或網路");
-                }
-            }
-        });
-
-        // --- Events Logic ---
-        db.collection('events').orderBy('order').onSnapshot(snapshot => {
+        // Calendar (Full Timeline Logic)
+        db.collection('events').orderBy('date').onSnapshot(snapshot => {
+            // 注意：這裡改用 date 排序，確保時間軸順序正確
+            // 但如果需要手動拖曳排序，則需要二次處理
             eventsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            
+            // 如果有 order 欄位，優先依 order 排序 (若需要拖曳功能)
+            // 但在「一覽式」行事曆中，通常依日期排序比較直覺
+            // 這裡為了保留您的「拖曳」需求，我們假設同日期的可以拖曳，或者完全依 order
+            // 這裡採取混合策略：先顯示，若要拖曳建議在"編輯模式"下，但為了簡化，我們直接渲染
+            
+            // 由於是一覽表，我們還是依日期排序比較好閱讀。
+            // 排序邏輯：先比日期
+            eventsData.sort((a, b) => a.date.localeCompare(b.date));
+
             renderEvents(eventsData);
         });
 
-        function filterEvents(month) {
-            currentMonth = month;
-            document.querySelectorAll('.month-tab').forEach(btn => {
-                if(btn.dataset.month === month) {
-                    btn.classList.add('bg-white', 'shadow-sm', 'text-tribal-teal');
-                    btn.classList.remove('text-earth-600');
-                } else {
-                    btn.classList.remove('bg-white', 'shadow-sm', 'text-tribal-teal');
-                    btn.classList.add('text-earth-600');
-                }
-            });
-            renderEvents(eventsData);
-        }
-
-        function renderEvents(allEvents) {
+        function renderEvents(events) {
             const listEl = document.getElementById('calendarList');
             const emptyEl = document.getElementById('emptyState');
             listEl.innerHTML = '';
 
-            const filtered = allEvents.filter(ev => ev.date.startsWith(currentMonth));
-            
-            if (filtered.length === 0) {
+            if (events.length === 0) {
                 emptyEl.classList.remove('hidden');
-            } else {
-                emptyEl.classList.add('hidden');
+                return;
+            }
+            emptyEl.classList.add('hidden');
+
+            let lastMonth = '';
+            
+            events.forEach((ev, index) => {
+                const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
+                const [year, month, day] = ev.date.split('-');
+                const currentMonthKey = `${year}-${month}`;
+
+                // 插入月份標題
+                if (currentMonthKey !== lastMonth) {
+                    const monthHeader = document.createElement('div');
+                    monthHeader.className = "sticky top-0 z-10 bg-earth-50/95 px-4 py-2 border-y border-earth-100 font-bold text-earth-600 text-sm shadow-sm mt-0";
+                    monthHeader.innerHTML = `<i class="fa-regular fa-calendar mr-2"></i> ${year}年 ${month}月`;
+                    listEl.appendChild(monthHeader);
+                    lastMonth = currentMonthKey;
+                }
+
+                // 渲染活動卡片
+                const isLast = index === events.length - 1 || (events[index+1] && events[index+1].date.startsWith(currentMonthKey) === false);
                 
-                filtered.forEach(ev => {
-                    const isAdmin = currentUser && currentUser.email === ADMIN_EMAIL;
-                    const colorMap = {
-                        'red': 'bg-rose-100 text-rose-700 border-rose-200',
-                        'teal': 'bg-teal-100 text-teal-700 border-teal-200',
-                        'amber': 'bg-amber-100 text-amber-800 border-amber-200',
-                        'blue': 'bg-blue-100 text-blue-700 border-blue-200'
-                    };
-                    const tagClass = colorMap[ev.tagColor] || colorMap['teal'];
-                    const day = ev.date.split('-')[2];
+                const item = document.createElement('div');
+                item.className = `relative pl-4 pr-4 py-3 flex gap-3 bg-white group hover:bg-earth-50/50 transition ${isLast ? 'last-item' : ''}`;
+                item.dataset.id = ev.id;
+                
+                // 顏色設定
+                const colorMap = {
+                    'red': { bg: 'bg-rose-500', text: 'text-rose-600', badge: 'bg-rose-100 text-rose-700' },
+                    'teal': { bg: 'bg-teal-500', text: 'text-teal-600', badge: 'bg-teal-100 text-teal-700' },
+                    'amber': { bg: 'bg-amber-500', text: 'text-amber-600', badge: 'bg-amber-100 text-amber-800' }
+                };
+                const theme = colorMap[ev.tagColor] || colorMap['teal'];
 
-                    const item = document.createElement('div');
-                    item.className = "group flex items-center gap-4 p-4 hover:bg-earth-50 transition select-none bg-white";
-                    item.dataset.id = ev.id;
+                item.innerHTML = `
+                    <!-- 時間軸線 -->
+                    <div class="timeline-line"></div>
                     
-                    item.innerHTML = `
-                        <div class="flex-shrink-0 w-12 text-center">
-                            <span class="block text-xl font-bold text-earth-800">${day}</span>
-                            <span class="block text-xs text-earth-400 uppercase">日</span>
+                    <!-- 日期圓點 -->
+                    <div class="flex-shrink-0 flex flex-col items-center z-10 w-12">
+                        <div class="w-10 h-10 rounded-full bg-white border-2 border-earth-200 flex flex-col items-center justify-center shadow-sm group-hover:border-tribal-teal transition">
+                            <span class="text-sm font-bold text-earth-800 leading-none">${day}</span>
                         </div>
-                        <div class="flex-grow">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="text-xs px-2 py-0.5 rounded border ${tagClass}">${ev.tagColor === 'red' ? '重要' : '活動'}</span>
-                                <h4 class="font-bold text-earth-800">${ev.title}</h4>
-                            </div>
-                            <p class="text-sm text-earth-600 line-clamp-1">${ev.description || ''}</p>
+                    </div>
+
+                    <!-- 內容 -->
+                    <div class="flex-grow pt-1 pb-2 border-b border-earth-50 group-hover:border-transparent">
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <h4 class="font-bold text-earth-800 text-base">${ev.title}</h4>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full ${theme.badge}">${getTagLabel(ev.tagColor)}</span>
                         </div>
-                        ${isAdmin ? `
-                        <div class="flex items-center gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition">
-                            <button onclick="editEvent('${ev.id}')" class="p-2 text-earth-400 hover:text-tribal-teal"><i class="fa-solid fa-pen"></i></button>
-                            <button onclick="deleteEvent('${ev.id}')" class="p-2 text-earth-400 hover:text-rose-500"><i class="fa-solid fa-trash"></i></button>
-                            <div class="drag-handle cursor-move p-2 text-earth-300 hover:text-earth-600"><i class="fa-solid fa-grip-vertical"></i></div>
-                        </div>
-                        ` : ''}
-                    `;
-                    listEl.appendChild(item);
-                });
-            }
+                        <p class="text-xs text-earth-500 line-clamp-2">${ev.description || ''}</p>
+                    </div>
+
+                    <!-- 管理按鈕 -->
+                    ${isAdmin ? `
+                    <div class="flex flex-col gap-2 pt-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition z-10">
+                        <button onclick="editEvent('${ev.id}')" class="text-earth-400 hover:text-tribal-teal"><i class="fa-solid fa-pen"></i></button>
+                        <button onclick="deleteEvent('${ev.id}')" class="text-earth-400 hover:text-rose-500"><i class="fa-solid fa-trash"></i></button>
+                    </div>
+                    ` : ''}
+                `;
+                listEl.appendChild(item);
+            });
         }
 
-        function initSortable(enable) {
-            const el = document.getElementById('calendarList');
-            if (sortableInstance) sortableInstance.destroy();
-            if (enable) {
-                sortableInstance = Sortable.create(el, {
-                    handle: '.drag-handle',
-                    animation: 150,
-                    ghostClass: 'dragging',
-                    onEnd: function (evt) {
-                        const batch = db.batch();
-                        Array.from(el.children).forEach((item, index) => {
-                            batch.update(db.collection('events').doc(item.dataset.id), { order: index });
-                        });
-                        batch.commit();
-                    }
-                });
-            }
-        }
+        function getTagLabel(c) { return c === 'red' ? '重要' : (c === 'amber' ? '活動' : '一般'); }
 
-        // --- Event CRUD ---
+        // Notice (Tag Style)
+        db.collection('notices').orderBy('createdAt', 'desc').onSnapshot(snap => {
+            const el = document.getElementById('noticeList');
+            el.innerHTML = '';
+            if (snap.empty) { el.innerHTML = '<div class="text-xs text-earth-400">暫無公告</div>'; return; }
+            
+            snap.forEach(doc => {
+                const n = {id: doc.id, ...doc.data()};
+                const tag = document.createElement('button');
+                tag.className = "inline-flex items-center px-3 py-1.5 rounded-full bg-earth-50 border border-earth-200 text-xs text-earth-700 hover:bg-tribal-teal hover:text-white hover:border-tribal-teal transition active:scale-95";
+                tag.innerHTML = `<span class="truncate max-w-[150px]">${n.title}</span>`;
+                tag.onclick = () => showNoticeDetail(n);
+                el.appendChild(tag);
+            });
+        });
+
+        // CRUD Event
         const eventForm = document.getElementById('eventForm');
-        
         document.getElementById('addEventBtn').addEventListener('click', () => {
             eventForm.reset();
             document.getElementById('eventId').value = '';
             document.getElementById('modalTitle').innerText = "新增活動";
-            document.getElementById('eventDate').value = `${currentMonth}-01`;
             openModal('eventModal');
         });
-
         window.editEvent = (id) => {
             const ev = eventsData.find(e => e.id === id);
             document.getElementById('eventId').value = ev.id;
@@ -438,11 +438,7 @@
             document.getElementById('modalTitle').innerText = "編輯活動";
             openModal('eventModal');
         };
-
-        window.deleteEvent = (id) => {
-            if(confirm("確定刪除？")) db.collection('events').doc(id).delete();
-        };
-
+        window.deleteEvent = (id) => { if(confirm("刪除？")) db.collection('events').doc(id).delete(); };
         eventForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('eventId').value;
@@ -450,42 +446,13 @@
                 title: document.getElementById('eventTitle').value,
                 date: document.getElementById('eventDate').value,
                 description: document.getElementById('eventDesc').value,
-                tagColor: document.querySelector('input[name="tagColor"]:checked').value,
-                order: id ? undefined : eventsData.length // 新增時放到最後
+                tagColor: document.querySelector('input[name="tagColor"]:checked').value
             };
-            if(data.order === undefined) delete data.order;
-            
             closeModal('eventModal');
             id ? await db.collection('events').doc(id).update(data) : await db.collection('events').add(data);
         });
 
-        // --- Notices Logic ---
-        const noticeList = document.getElementById('noticeList');
-
-        db.collection('notices').orderBy('createdAt', 'desc').onSnapshot(snapshot => {
-            noticeList.innerHTML = '';
-            const notices = snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
-            
-            if (notices.length === 0) {
-                noticeList.innerHTML = '<li class="text-center text-earth-400 text-sm">目前沒有公告</li>';
-                return;
-            }
-
-            notices.forEach(n => {
-                const li = document.createElement('li');
-                li.className = "flex items-start gap-3 p-3 rounded-lg hover:bg-earth-50 cursor-pointer transition border border-transparent hover:border-earth-100";
-                li.onclick = () => showNoticeDetail(n);
-                li.innerHTML = `
-                    <div class="mt-1 w-2 h-2 rounded-full bg-tribal-amber flex-shrink-0"></div>
-                    <div>
-                        <h4 class="text-sm font-bold text-earth-800 hover:text-tribal-teal transition">${n.title}</h4>
-                        <span class="text-xs text-earth-400">${n.createdAt ? new Date(n.createdAt.toDate()).toLocaleDateString() : ''}</span>
-                    </div>
-                `;
-                noticeList.appendChild(li);
-            });
-        });
-
+        // CRUD Notice
         document.getElementById('addNoticeBtn').addEventListener('click', () => openModal('addNoticeModal'));
         document.getElementById('noticeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -498,57 +465,36 @@
             closeModal('addNoticeModal');
             e.target.reset();
         });
-
-        function showNoticeDetail(notice) {
-            document.getElementById('noticeDetailTitle').innerText = notice.title;
-            document.getElementById('noticeDetailDate').innerText = notice.createdAt ? new Date(notice.createdAt.toDate()).toLocaleDateString() : '';
-            document.getElementById('noticeDetailContent').innerText = notice.content;
+        function showNoticeDetail(n) {
+            document.getElementById('noticeDetailTitle').innerText = n.title;
+            document.getElementById('noticeDetailDate').innerText = n.createdAt ? new Date(n.createdAt.toDate()).toLocaleDateString() : '';
+            document.getElementById('noticeDetailContent').innerText = n.content;
+            const link = document.getElementById('noticeDetailLink');
+            link.style.display = n.link ? 'block' : 'none';
+            link.href = n.link || '#';
             
-            const linkBtn = document.getElementById('noticeDetailLink');
-            if (notice.link) {
-                linkBtn.href = notice.link;
-                linkBtn.classList.remove('hidden');
-            } else {
-                linkBtn.classList.add('hidden');
-            }
-
-            const delBtn = document.getElementById('deleteNoticeBtn');
+            const del = document.getElementById('deleteNoticeBtn');
             if (currentUser && currentUser.email === ADMIN_EMAIL) {
-                delBtn.classList.remove('hidden');
-                delBtn.onclick = () => {
-                    if(confirm("刪除此公告？")) {
-                        db.collection('notices').doc(notice.id).delete();
-                        closeModal('noticeModal');
-                    }
-                };
-            } else {
-                delBtn.classList.add('hidden');
-            }
+                del.style.display = 'block';
+                del.onclick = () => { if(confirm("刪除？")) { db.collection('notices').doc(n.id).delete(); closeModal('noticeModal'); }};
+            } else { del.style.display = 'none'; }
             openModal('noticeModal');
         }
 
-        // --- Utils ---
+        // Utils
+        function initSortable(enable) {
+            // 一覽模式下暫時關閉 Sortable，因為我們強制依日期排序顯示
+            // 若要支援拖曳，需改寫 render 邏輯，這裡先保持簡單
+        }
         function openModal(id) {
-            const modal = document.getElementById(id);
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => {
-                modal.firstElementChild.classList.remove('scale-95', 'opacity-0');
-                modal.firstElementChild.classList.add('scale-100', 'opacity-100');
-            }, 10);
+            const m = document.getElementById(id); m.classList.remove('hidden'); m.classList.add('flex');
+            setTimeout(() => { m.firstElementChild.classList.remove('scale-95', 'opacity-0'); m.firstElementChild.classList.add('scale-100', 'opacity-100'); }, 10);
         }
-
         function closeModal(id) {
-            const modal = document.getElementById(id);
-            modal.firstElementChild.classList.remove('scale-100', 'opacity-100');
-            modal.firstElementChild.classList.add('scale-95', 'opacity-0');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }, 200);
+            const m = document.getElementById(id);
+            m.firstElementChild.classList.remove('scale-100', 'opacity-100'); m.firstElementChild.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => { m.classList.add('hidden'); m.classList.remove('flex'); }, 200);
         }
-
-        filterEvents(currentMonth);
     </script>
 </body>
 </html>
